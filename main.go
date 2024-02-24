@@ -1,11 +1,12 @@
-package ccserver
+package main
 
 import (
 	"net/http"
-
 	"golang.org/x/net/websocket"
 )
 
 func main() {
-    http.Handle("/", websocket.Handler())
+	server := NewServer()
+	http.Handle("/", websocket.Handler(server.handleWS))
+	http.ListenAndServe(":8080", nil)
 }
