@@ -47,8 +47,9 @@ func (s *Server) getConnectedUsers() []User {
 	users := make([]User, len(s.conns))
 
 	i := 0
-	for _, client := range(s.conns) {
+	for _, client := range s.conns {
 		users[i] = client.user
+		i++;
 	}
 
 	return users
@@ -116,6 +117,18 @@ func (s *Server) handleUserConnection(userId UserId, msg *[]byte) {
 	s.sendMessage(userId, getSocketMessage(socketMessage))
 }
 
+func (s *Server) handleUserDisconnection(userId UserId) {
+	socketMessage := SocketMessage{
+		Type:   UserDisconnected,
+		UserID: userId,
+	}
+
+	s.removeConn(userId)
+
+	msg := getSocketMessage(socketMessage)
+	s.broadCast(msg, userId)
+}
+
 // Send message to a single user
 func (s *Server) sendMessage(userId UserId, msg []byte) {
 	ws := s.getConn(userId)
@@ -130,7 +143,7 @@ func (s *Server) broadCast(b []byte, senderId UserId) {
 		}
 		go func(userId UserId, ws *websocket.Conn) {
 			if _, err := ws.Write(b); err != nil {
-				s.removeConn(userId)
+				s.handleUserDisconnection(userId)
 				fmt.Println("Write error:", err)
 			}
 		}(userId, client.conn)
