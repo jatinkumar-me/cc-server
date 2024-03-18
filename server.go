@@ -93,8 +93,6 @@ func (s *Server) readLoop(userId UserId) {
 			s.removeConn(userId)
 		}
 
-		// fmt.Println(string(msg))
-
 		s.broadCast(msg, userId)
 	}
 }
@@ -144,7 +142,6 @@ func (s *Server) broadCast(b []byte, senderId UserId) {
 		go func(userId UserId, ws *websocket.Conn) {
 			if _, err := ws.Write(b); err != nil {
 				s.handleUserDisconnection(userId)
-				fmt.Println("Write error:", err)
 			}
 		}(userId, client.conn)
 	}
